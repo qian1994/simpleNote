@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+
+    </body>
+    <script type="text/javascript">
+        const arrayMethod = ['push', 'pop', 'shift', 'unshift', 'splice', 'reverse']
+        const arrayArgumentation = []
+        arrayMethod.forEach((method) => {
+            let original = Array.prototype[method];
+
+            arrayArgumentation[method] = function() {
+                return original.apply(this, arguments)
+            }
+        })
+
+        let list = ['a', 'b', 'c']
+        list.__proto__ = arrayArgumentation;
+        list.push('d')
+
+        let lists = ['a', 'b', 'c']
+        lists.push('d')
+
+
+
+        function FakeArray() {
+            // Array.call(this, arguments);
+            Array.apply(this, arguments)
+        }
+
+        FakeArray.prototype = []
+        FakeArray.prototype.constructor = FakeArray
+
+        FakeArray.prototype.push = function() {
+            console.log('我被改变啦')
+            // return Array.prototype.push.call(this, arguments);
+            return Array.prototype.push.apply(this, arguments);
+        }
+
+        let list3 = ['a', 'b', 'c']
+        let fakeList = new FakeArray(...list3);
+
+
+    </script>
+</html>

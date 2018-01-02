@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+        <div id="app">
+            <p>{{user.name}}</p>
+            <p>{{user.age}}</p>
+        </div>
+
+    </body>
+    <script type="text/javascript">
+        const app = new Bue({
+            el: '#app',
+            data:{
+                name: 'youndwind',
+                age: 24
+            }
+        })
+
+        // 数据绑定是，获取对象属性路径
+        var compileGetter = function(path){
+            path = path.split('.');
+            let body = 'if (o != null';
+            let pathString = 'o';
+            let key;
+            for (let i = 0; i < path.length - 1; i++){
+                key = path[i];
+                pathString += `.${key}`;
+                body += `&& ${pathString} != null`;
+            }
+
+            key = path[path.length - 1];
+            pathString += `.${key}`;
+            body += `) return ${pathString}`;
+            return new Function('o', body)
+        }
+
+    </script>
+</html>

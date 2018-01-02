@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+    </head>
+    <body>
+
+    </body>
+    <script type="text/javascript">
+    // 计算属性分成两步
+    // 1. 让程序知道info依赖 name， age， -》 如何收集计算属性依赖属性
+    // 2. 当name和age改变的时候，更新info对应的dom元素
+
+    // 解决办法。2， 将计算属性，变成data的属性。跟普通属性一样的渲染dom
+    //         1, 在$data 顶层注册一个colletDep（收集依赖）函数，这样我们就能知道info
+    // 依赖于user.name和user.age 了。 收集依赖，如何实现？？？
+
+
+
+
+    // 高手 方法函数
+    var vm = {
+       data: {
+           message: 'no.1',
+           username: 'Hello',
+           password: 'World',
+           quote: '!'
+       },
+       computed: {
+           reverseMessage: function() {
+               var message = this.message;
+               return message.split('').reverse().join('');
+           },
+           sucker: function() {
+               return 'username:' + this.username + ';password:' + this.password + this.quote;
+           },
+           test: 'Hello World!'
+       }
+    };
+
+    var set = {};
+    var observeTarget = null;
+    observe(vm);
+
+    function observe(vm) {
+       _initData(vm);
+       _initComputed(vm);
+    }
+
+    function _initData(vm) {
+       var data = vm.data;
+       _walk(vm, data);
+       _eval(vm, data);
+    }
+
+    function _initComputed(vm) {
+       var computed = vm.computed;
+       _walk(vm, computed);
+       _eval(vm, computed);
+    }
+
+    function _walk(vm, data) {
+       for (var key in data) {
+           if (data.hasOwnProperty(key)) {
+               set[key] = [];
+               (function(key) {
+                   Object.defineProperty(vm, key, {
+                       enumerable: true,
+                       configurable: true,
+                       get: function() {
+                           if (set[key].indexOf(observeTarget) == -1) {
+                               set[key].push(observeTarget);
+                           }
+                           return isFunction(data[key]) ? data[key].call(vm) : data[key];
+                       },
+                       set: function(val) {
+                           if (isFunction(data[key])) {
+                               return;
+                           }
+                           if (set[key].indexOf(observeTarget) == -1) {
+                               set[key].push(observeTarget);
+                           }
+                           data[key] = val;
+                           set[key].forEach(function(item) {
+                               if (item != observeTarget) {
+                                   if (isFunction(item)) {
+                                       item.call(vm);
+                                   }
+                               }
+                           });
+                       }
+                   });
+               }(key))
+           }
+       }
+    }
+
+    function _eval(vm, data) {
+       for (var key in data) {
+           if (data.hasOwnProperty(key)) {
+               if (isFunction(data[key])) {
+                   observeTarget = key;
+                   data[key].call(vm);
+               }
+           }
+       }
+    }
+
+    function isFunction(val) {
+       return typeof val == "function";
+    }
+
+    vm.message = 'GoodBye';
+    console.log(vm.reverseMessage); // output: GoodBye0
+    console.log(vm.test); // output: Hello World
+
+    vm.username = 'zyEros02';
+    console.log(vm.sucker);
+
+    vm.password = 'zysuper';
+    vm.quote = '?';
+    console.log(vm.sucker);
+    //该片段来自于http://www.codesnippet.cn/detail/0510201615088.html
+
+    </script>
+</html>
